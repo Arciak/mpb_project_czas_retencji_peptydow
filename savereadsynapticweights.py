@@ -9,3 +9,11 @@ def save_synaptic_weights(synaptic_weights):
 			np.savetxt(weights, synaptic_weights[layer])  #zapis macierzy
 
 	print("Zapisaono wagi do plikow")
+
+
+def read_synaptic_weights():
+	synaptic_weights = []
+	for layer in range(3):
+		with open("layer_{}_weights.txt".format(layer), 'r') as weights:
+			synaptic_weights.append(np.loadtxt(weights))  # czytanie wag
+	return synaptic_weights
