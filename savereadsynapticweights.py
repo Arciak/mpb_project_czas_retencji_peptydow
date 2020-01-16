@@ -13,7 +13,7 @@ def save_synaptic_weights(synaptic_weights):
 
 def read_synaptic_weights():
 	synaptic_weights = []
-	for layer in range(3):
+	for layer in range(2):
 		with open("layer_{}_weights.txt".format(layer), 'r') as weights:
 			synaptic_weights.append(np.loadtxt(weights))  # czytanie wag
 	return synaptic_weights
