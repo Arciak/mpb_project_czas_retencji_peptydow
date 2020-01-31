@@ -30,25 +30,46 @@ neural_network = NeuralNetwork(layer1, layer2)
 loop_bool = True
 number_of_examples = 150
 file_path = "rt_pred_data/krokhin.txt"
-training_loops = 6000
+training_loops = 150
 
 while loop_bool:
+
 	loop_int = int(input(" \n 1-- ucz siec nowymi danymi \n 2-- przewiduj z zapisanymi wagami \n 3-- przewiduj i drukuj wykres \n 4-- zakoncz"))
 
 	if loop_int == 1:
 		array_mse = []
+		mse22 = []
+
+		print("Stage 1) Random starting synaptic weights: ")
+		print(neural_network.print_weights())
+
+		# The training set. We have  number_of_examples, each consisting of 20 input values
+		# and 1 output value.
+		# training_data = rp.read_data_from_file(file_path)
+		# training_inputs = training_data[0][:number_of_examples]
+		# training_outputs = np.array(training_data[1][:number_of_examples])
+		#
+		# # Train the neural network using the training set.
+		# mse22 = neural_network.train(training_inputs, training_outputs, training_loops)
+		#
+		# print("\n Stage 2) New synaptic weights after training: ")
+		# print(neural_network.print_weights())
+		#
+		# srsw.save_synaptic_weights(neural_network.weights())
+		#
 		for xx in range(number_of_examples):
+			print("Numer danych: {}\n".format(xx))
 			print("Stage 1) Random starting synaptic weights: ")
 			print(neural_network.print_weights())
 
 			# The training set. We have  number_of_examples, each consisting of 20 input values
 			# and 1 output value.
 			training_data = rp.read_data_from_file(file_path)
-			training_inputs = training_data[0][:xx]
-			training_outputs = np.array(training_data[1][:xx])
+			training_inputs = training_data[0][xx:number_of_examples]
+			training_outputs = np.array(training_data[1][xx:number_of_examples])
 
 			# Train the neural network using the training set.
-			neural_network.train(training_inputs, training_outputs, training_loops)
+			mse22 = neural_network.train(training_inputs, training_outputs, training_loops)
 
 			print("\n Stage 2) New synaptic weights after training: ")
 			print(neural_network.print_weights())
@@ -56,28 +77,40 @@ while loop_bool:
 			srsw.save_synaptic_weights(neural_network.weights())
 
 			check_data = rp.read_data_from_file(file_path)
-			# neural_network.set_weights(srsw.read_synaptic_weights())
-			print(np.size(check_data[1]))
-			pred_out = []
-			for peptid in check_data[0][number_of_examples:np.size(check_data[1][:,-1])]:
-				temp_data = neural_network.think(np.array([peptid]))
-				pred_out = np.append(pred_out, temp_data[1])
-			real_data = check_data[1][number_of_examples:np.size(check_data[1][:,-1])]
-			pred_data = pred_out
-			korelacja_value = 0
-			for counter, val in enumerate(real_data):
-				korelacja_value += korelacja(val, pred_data[counter])
 
-			korelacja_value = korelacja_value/np.size(pred_data)
-
-			temp_mse = np.square(np.subtract(real_data, pred_out)).mean()
+			suma_dla_mse = 0
+			check_data_train = rp.read_data_from_file(file_path)
+			real_data_train = check_data_train[1][number_of_examples:np.size(check_data_train[1][:,-1])]
+			pred_out_train = []
+			for iter, peptid in enumerate(check_data_train[0][number_of_examples:np.size(check_data_train[1][:,-1])]):
+				temp_data_train = neural_network.think(np.array([peptid]))
+				pred_out_train = np.append(pred_out_train, temp_data_train[1])
+				diff = real_data_train[iter] - temp_data_train[1]
+				pred_out_train = np.append(pred_out_train, temp_data_train[1])
+				squered_diff = diff**2
+				suma_dla_mse += squered_diff
+			# MSE = np.square(np.subtract(check_data[1][number_of_examples:np.size(check_data[1])], pred_out)).mean()
+			# print(MSE)
+			real_data_train = check_data_train[1][number_of_examples:np.size(check_data_train[1][:,-1])]
+			pred_data_train = pred_out_train
+			temp_mse = suma_dla_mse/np.size(check_data_train[1][number_of_examples:np.size(check_data_train[1][:,-1])])
 			array_mse = np.append(array_mse, temp_mse)
 
 		print("Maluje wykres")
+		plt.figure()
 		plt.plot(array_mse)
 		plt.xlabel("Liczba danch uczących")
 		plt.ylabel("MSE")
-		plt.title("MSE")
+		plt.title("Zależność od liczby danych uczących dla krokhin.txt")
+		plt.grid()
+		plt.show()
+
+		plt.figure()
+		plt.figure()
+		plt.plot(mse22)
+		plt.xlabel("Numer kroku")
+		plt.ylabel("MSE")
+		plt.title("Proces uczenia dla krokhin.txt")
 		plt.grid()
 		plt.show()
 
@@ -100,32 +133,36 @@ while loop_bool:
 			print(neural_network.think(np.array([data])))
 
 	elif loop_int == 3:
-		check_data = rp.read_data_from_file(file_path)
+		check_data_train = rp.read_data_from_file(file_path)
 		neural_network.set_weights(srsw.read_synaptic_weights())
-		print(np.size(check_data[1]))
-		pred_out = []
-		for peptid in check_data[0][number_of_examples:np.size(check_data[1][:,-1])]:
-			temp_data = neural_network.think(np.array([peptid]))
-			pred_out = np.append(pred_out, temp_data[1])
+		print(np.size(check_data_train[1]))
+		pred_out_train = []
+		for peptid in check_data_train[0][number_of_examples:np.size(check_data_train[1][:,-1])]:
+			temp_data_train = neural_network.think(np.array([peptid]))
+			pred_out_train = np.append(pred_out_train, temp_data_train[1])
 
 		# MSE = np.square(np.subtract(check_data[1][number_of_examples:np.size(check_data[1])], pred_out)).mean()
 		# print(MSE)
-		real_data = check_data[1][number_of_examples:np.size(check_data[1][:,-1])]
-		pred_data = pred_out
-		korelacja_value = 0
-		for counter, val in enumerate(real_data):
-			korelacja_value += korelacja(val, pred_data[counter])
+		real_data_train = check_data_train[1][number_of_examples:np.size(check_data_train[1][:,-1])]
+		pred_data_train = pred_out_train
+		korelacja_value_train = 0
+		for counter, val in enumerate(real_data_train):
+			korelacja_value_train += korelacja(val, pred_data_train[counter])
 
-		korelacja_value = korelacja_value/np.size(pred_data)
-		print(korelacja_value)
-		plt.plot(real_data , real_data, color='blue')
-		plt.plot(real_data , pred_out, 'ro', color = 'red')
+		korelacja_value_train = korelacja_value_train/np.size(pred_data_train)
+		print(korelacja_value_train)
+		plt.plot(real_data_train, real_data_train, color='blue')
+		plt.plot(real_data_train, pred_out_train, 'ro', color = 'red')
 		plt.grid()
-		plt.title("Czas retencji peptydów")
+		plt.title("Czas retencji peptydów dla krokhin.txtx")
 		plt.xlabel("Realne [s]")
 		plt.ylabel("Przewidziane [s]")
 		plt.show()
 
 	elif loop_int == 4:
-
 		break
+
+
+# wspolczynnik korelacji
+# opisac procedure testowa
+# parametry  sieci

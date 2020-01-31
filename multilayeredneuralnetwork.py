@@ -1,6 +1,11 @@
 import numpy as np
+import readpeptides as rp
 import matplotlib.pyplot as plt
 
+
+loop_bool = True
+number_of_examples = 150
+file_path = "rt_pred_data/krokhin.txt"
 
 class NeuronLayer():
 	def __init__(self, number_of_neurons, number_of_inputs_per_neuron):
@@ -38,7 +43,20 @@ class NeuralNetwork():
 			# Pass the training set through our neural network
 			output_from_layer_1, output_from_layer_2 = self.think(training_set_inputs)
 
-			temp_mse = np.square(np.subtract(training_set_outputs, output_from_layer_2)).mean()
+			check_data_train = rp.read_data_from_file(file_path)
+			suma_dla_mse = 0
+			print(iteration)
+			pred_out_train = []
+			real_data_train = check_data_train[1][number_of_examples:np.size(check_data_train[1][:,-1])]
+			for iter, peptid in enumerate(check_data_train[0][number_of_examples:np.size(check_data_train[1][:,-1])]):
+				temp_data_train = self.think(np.array([peptid]))
+				diff = real_data_train[iter] - temp_data_train[1]
+				pred_out_train = np.append(pred_out_train, temp_data_train[1])
+				squered_diff = diff**2
+				suma_dla_mse += squered_diff
+
+			temp_mse = suma_dla_mse/np.size(check_data_train[1][number_of_examples:np.size(check_data_train[1][:,-1])])
+
 			array_mse = np.append(array_mse, temp_mse)
 
 			# Calculate the error for layer 2 (By looking at the weights in layer 2,
@@ -64,13 +82,7 @@ class NeuralNetwork():
 			# Adjust the weights.
 			self.layer1.synaptic_weights += layer1_adjustment
 			self.layer2.synaptic_weights += layer2_adjustment
-		# print("Maluje wykres")
-		# plt.plot(array_mse)
-		# plt.xlabel("Numer kroku")
-		# plt.ylabel("MSE")
-		# plt.title("MSE")
-		# plt.grid()
-		# plt.show()
+		return array_mse
 
 	# The neural network thinks.
 	def think(self, inputs):
