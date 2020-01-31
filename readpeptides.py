@@ -10,7 +10,7 @@ import numpy as np
 
 def read_data_from_file(file_path):
 	'''
-	
+
 	:param file_path:
 	:return:
 	'''
@@ -34,17 +34,13 @@ def read_data_from_file(file_path):
 
 	letters = np.sort(letters)
 
-	training_inputs = np.zeros((np.size(read_peptides), np.size(letters)))
+	training_inputs = np.zeros((np.size(read_peptides), np.size(letters)+1))
 
 	temp_iterator = -1
 	for peptide in read_peptides:
 		temp_iterator += 1
 		for letter in peptide:
 			training_inputs[temp_iterator, np.where(letters == letter)] += 1
-
+	training_inputs[:, -1] = np.ones(np.size(training_inputs[:, -1]))
 	training_outputs.shape = (training_outputs.size, 1)
 	return training_inputs, training_outputs
-
-
-
-
